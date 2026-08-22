@@ -1,10 +1,11 @@
 /**
- * Summary panel — executive / standard / detailed tabs.
+ * Summary panel — executive / standard / detailed tabs with copy and export actions.
  */
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, Copy, Check, Download, Clock } from 'lucide-react'
+import toast from 'react-hot-toast'
 import clsx from 'clsx'
 
 const MODES = [
@@ -15,6 +16,29 @@ const MODES = [
 
 export default function SummaryPanel({ summary }) {
   const [active, setActive] = useState('standard')
+  const [copied, setCopied] = useState(false)
+
+  const currentText = summary?.[active] || 'Summary not available.'
+  const wordCount = currentText.split(/\s+/).filter(Boolean).length
+  const readTimeMin = Math.max(1, Math.ceil(wordCount / 200))
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(currentText)
+    setCopied(true)
+    toast.success('Summary copied to clipboard!')
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleDownload = () => {
+    const blob = new Blob([currentText], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `DocuMind-Summary-${active}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success('Summary downloaded!')
+  }
 
   return (
     <motion.div
@@ -23,9 +47,33 @@ export default function SummaryPanel({ summary }) {
       transition={{ delay: 0.1 }}
       className="card space-y-4"
     >
-      <div className="flex items-center gap-2">
-        <BookOpen size={16} className="text-brand-400" />
-        <h2 className="font-semibold text-slate-100">Summary</h2>
+      {/* Header with quick actions */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <BookOpen size={16} className="text-brand-400" />
+          <h2 className="font-semibold text-slate-100">AI Summary</h2>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="hidden sm:inline-flex items-center gap-1 text-xs text-slate-500 bg-surface px-2.5 py-1 rounded-md">
+            <Clock size={11} />
+            {wordCount} words · ~{readTimeMin} min read
+          </span>
+          <button
+            onClick={handleCopy}
+            className="btn-ghost p-1.5 rounded-md hover:bg-surface text-slate-400 hover:text-slate-200"
+            title="Copy summary"
+          >
+            {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+          </button>
+          <button
+            onClick={handleDownload}
+            className="btn-ghost p-1.5 rounded-md hover:bg-surface text-slate-400 hover:text-slate-200"
+            title="Download summary as text"
+          >
+            <Download size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Mode tabs */}
@@ -54,9 +102,9 @@ export default function SummaryPanel({ summary }) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.2 }}
-          className="text-slate-300 leading-relaxed text-sm"
+          className="text-slate-300 leading-relaxed text-sm whitespace-pre-line"
         >
-          {summary[active] || 'Summary not available.'}
+          {currentText}
         </motion.p>
       </AnimatePresence>
     </motion.div>

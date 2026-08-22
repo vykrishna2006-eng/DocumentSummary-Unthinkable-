@@ -1,5 +1,5 @@
 """
-Centralized, resilient Gemini AI client with automatic model fallback, retry, and JSON parsing.
+Centralized, resilient Gemini AI client with automatic model fallback, retry, JSON parsing, and multimodal vision.
 """
 
 import json
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class GeminiAIClient:
     """
-    Encapsulates Google GenAI client with multi-model fallback and JSON resilience.
+    Encapsulates Google GenAI client with multi-model fallback, JSON resilience, and vision support.
     """
 
     def __init__(self):
@@ -70,15 +70,12 @@ class GeminiAIClient:
                     raise ValueError(f"Empty response received from model {model_name}")
 
                 raw = response.text.strip()
-                # Strip markdown fences if returned
                 raw = re.sub(r"^```(?:json)?\s*", "", raw)
                 raw = re.sub(r"\s*```$", "", raw)
 
-                # Try parsing as is
                 try:
                     return json.loads(raw)
                 except json.JSONDecodeError:
-                    # Search for outermost JSON structure
                     match = re.search(r"(\{.*\}|\[.*\])", raw, re.DOTALL)
                     if match:
                         return json.loads(match.group(0))
@@ -139,6 +136,50 @@ class GeminiAIClient:
 
         logger.error("All Gemini candidate models failed for text call: %s", last_error)
         raise ValueError(f"AI service unavailable across all fallback models: {last_error}") from last_error
+
+    def call_vision(
+        self,
+        image_bytes: bytes,
+        mime_type: str = "image/png",
+        prompt: str = "Extract all text, structure, tables, and information from this image accurately.",
+        timeout: int = 45000,
+    ) -> str:
+        """
+        Executes a Gemini multimodal vision call on raw image bytes.
+        """
+        if not self._client:
+            raise ValueError("GEMINI_API_KEY is not configured.")
+
+        last_error: Optional[Exception] = None
+
+        for model_name in self.candidate_models:
+            try:
+                logger.info("Attempting Gemini Vision call with model=%s", model_name)
+                response = self._client.models.generate_content(
+                    model=model_name,
+                    contents=[
+                        types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                        prompt,
+                    ],
+                    config=types.GenerateContentConfig(
+                        http_options={"timeout": timeout},
+                    ),
+                )
+
+                if response and response.text:
+                    return response.text.strip()
+
+            except Exception as exc:
+                last_error = exc
+                logger.warning(
+                    "Gemini Vision call failed with model=%s: %s. Trying fallback model...",
+                    model_name,
+                    exc,
+                )
+                time.sleep(0.8)
+
+        logger.error("All Gemini candidate models failed for vision call: %s", last_error)
+        raise ValueError(f"AI Vision unavailable across all fallback models: {last_error}") from last_error
 
 
 # Singleton instance

@@ -69,6 +69,7 @@ const ACCEPTED = {
   'application/pdf': ['.pdf'],
   'image/png': ['.png'],
   'image/jpeg': ['.jpg', '.jpeg'],
+  'image/webp': ['.webp'],
 }
 const MAX_SIZE = 20 * 1024 * 1024
 
@@ -86,7 +87,7 @@ export default function Home() {
     if (rejected.length > 0) {
       const err = rejected[0].errors[0]
       if (err.code === 'file-too-large') toast.error('File too large. Max 20 MB.')
-      else if (err.code === 'file-invalid-type') toast.error('Unsupported file. Upload PDF, PNG or JPG.')
+      else if (err.code === 'file-invalid-type') toast.error('Unsupported file. Upload PDF, PNG, JPG, or WEBP.')
       else toast.error(err.message)
       return
     }
@@ -261,11 +262,23 @@ export default function Home() {
                     exit={{ opacity: 0 }}
                     className="space-y-2"
                   >
-                    <div className="w-11 h-11 rounded-xl bg-brand-900 flex items-center justify-center mx-auto">
-                      <FileText size={22} className="text-brand-400" />
-                    </div>
+                    {/* Image preview for PNG/JPG/WEBP */}
+                    {file.type.startsWith('image/') ? (
+                      <div className="mx-auto w-32 h-24 rounded-lg overflow-hidden bg-surface-border border border-surface-border shadow-md">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt="Preview"
+                          className="w-full h-full object-contain"
+                          onLoad={(e) => URL.revokeObjectURL(e.target.src)}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-11 h-11 rounded-xl bg-brand-900 flex items-center justify-center mx-auto">
+                        <FileText size={22} className="text-brand-400" />
+                      </div>
+                    )}
                     <p className="font-medium text-slate-100 text-sm truncate max-w-xs mx-auto">{file.name}</p>
-                    <p className="text-xs text-slate-500">{fmtBytes(file.size)}</p>
+                    <p className="text-xs text-slate-500">{fmtBytes(file.size)} · {file.type.startsWith('image/') ? '🖼 Image → Gemini AI Vision' : '📄 PDF'}</p>
                     <button
                       onClick={e => { e.stopPropagation(); setFile(null) }}
                       className="text-xs text-slate-500 hover:text-slate-300 underline"
@@ -286,7 +299,8 @@ export default function Home() {
                     <p className="font-medium text-slate-300">
                       {isDragActive ? 'Drop it here' : 'Drag & drop your document'}
                     </p>
-                    <p className="text-xs text-slate-500">PDF · PNG · JPG — up to 20 MB</p>
+                    <p className="text-xs text-slate-500">PDF · PNG · JPG · WEBP — up to 20 MB</p>
+                    <p className="text-xs text-slate-600">Images are analysed directly with <span className="text-brand-400 font-medium">Gemini AI Vision</span></p>
                     <span className="inline-block mt-1 px-4 py-1.5 rounded-lg bg-surface-border text-sm text-slate-300 hover:bg-surface-muted transition-colors">
                       Browse Files
                     </span>

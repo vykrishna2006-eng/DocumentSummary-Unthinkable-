@@ -241,8 +241,15 @@ class DocumentService:
                     ocr.confidence,
                 )
 
-        elif ext in ("png", "jpg", "jpeg"):
-            ocr = self.ocr_svc.extract_from_image(file_bytes)
+        elif ext in ("png", "jpg", "jpeg", "webp"):
+            mime_map = {
+                "png": "image/png",
+                "jpg": "image/jpeg",
+                "jpeg": "image/jpeg",
+                "webp": "image/webp",
+            }
+            mime_type = mime_map.get(ext, "image/png")
+            ocr = self.ocr_svc.extract_from_image(file_bytes, mime_type=mime_type)
             return (ocr.text, 1, ExtractionMethod.ocr, ocr.confidence)
 
         else:
@@ -250,15 +257,20 @@ class DocumentService:
 
     def _infer_doc_type(self, text: str) -> str:
         """Heuristically infer a human-readable document type."""
-        sample = text[:1000].lower()
-        if any(w in sample for w in ["abstract", "methodology", "references", "doi"]):
-            return "Research Paper"
-        if any(w in sample for w in ["invoice", "bill to", "total", "tax"]):
-            return "Invoice"
-        if any(w in sample for w in ["agreement", "whereas", "party", "hereby"]):
-            return "Legal Document"
-        if any(w in sample for w in ["executive summary", "revenue", "q1", "fiscal"]):
+        sample = text[:1200].lower()
+        if any(w in sample for w in ["abstract", "methodology", "references", "doi", "proposal"]):
+            return "Research Paper / Proposal"
+        if any(w in sample for w in ["invoice", "bill to", "total", "tax", "amount due", "receipt"]):
+            return "Invoice / Receipt"
+        if any(w in sample for w in ["agreement", "whereas", "party", "hereby", "contract", "terms and conditions"]):
+            return "Legal Agreement"
+        if any(w in sample for w in ["executive summary", "revenue", "q1", "q2", "q3", "q4", "fiscal", "quarterly"]):
             return "Business Report"
-        if any(w in sample for w in ["curriculum", "experience", "education", "skills"]):
+        if any(w in sample for w in ["curriculum vitae", "experience", "education", "skills", "resume"]):
             return "Resume / CV"
+        if any(w in sample for w in ["diagram", "chart", "figure", "visual description", "screenshot"]):
+            return "Visual Document / Infographic"
+        if any(w in sample for w in ["slide", "agenda", "presentation"]):
+            return "Presentation Slide"
         return "Document"
+

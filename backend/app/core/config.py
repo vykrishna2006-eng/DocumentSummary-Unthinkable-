@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 
     # File upload limits
     max_file_size_mb: int = 20
-    allowed_extensions: List[str] = ["pdf", "png", "jpg", "jpeg"]
+    allowed_extensions: List[str] = ["pdf", "png", "jpg", "jpeg", "webp"]
 
     # Processing
     chunk_size: int = 2000          # characters per chunk
