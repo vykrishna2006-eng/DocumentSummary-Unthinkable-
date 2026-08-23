@@ -161,7 +161,7 @@ This avoids token limits, preserves document context, and produces more accurate
 - Python 3.11+
 - Node.js 18+
 - Tesseract OCR installed ([installation guide](https://github.com/tesseract-ocr/tesseract))
-- OpenAI API key
+- GeminiAI API key
 
 ### Backend
 
@@ -175,7 +175,7 @@ source .venv/bin/activate
 
 pip install -r requirements.txt
 cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY
+# Edit .env and add your GEMINIAI_API_KEY
 
 uvicorn app.main:app --reload
 # API available at http://localhost:8000
@@ -198,8 +198,8 @@ npm run dev
 ### Backend (`.env`)
 
 ```env
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-4o-mini
+GEMINIAI_API_KEY=AQ-...
+GEMINIAI_MODEL=gpt-4o-mini
 ALLOWED_ORIGINS=["http://localhost:5173"]
 MAX_FILE_SIZE_MB=20
 DEBUG=false
