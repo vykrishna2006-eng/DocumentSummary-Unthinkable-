@@ -95,7 +95,7 @@ User → React Frontend → FastAPI Backend
 | Backend | FastAPI (Python 3.11+) |
 | PDF Extraction | PyMuPDF (fitz) |
 | OCR | Tesseract + pytesseract |
-| AI | OpenAI GPT-4o-mini |
+| AI | Gemini AI |
 | Validation | Pydantic v2 |
 | Deployment | Vercel (frontend) + Render (backend) |
 
