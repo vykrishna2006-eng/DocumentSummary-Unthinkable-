@@ -63,7 +63,7 @@ User → React Frontend → FastAPI Backend
                       ▼
                Chunk Service (semantic chunking)
                       ▼
-              AI Analysis Engine (OpenAI)
+              AI Analysis Engine (GeminiAI)
               ┌───────┼───────┐
               ▼       ▼       ▼
            Summary  Insights  Improvements
