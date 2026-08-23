@@ -230,7 +230,7 @@ Set environment variable `VITE_API_URL` to your backend URL.
 1. Create a new Web Service on Render
 2. Build command: `pip install -r requirements.txt`
 3. Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-4. Add `OPENAI_API_KEY` in Render environment variables
+4. Add `GEMINIAI_API_KEY` in Render environment variables
 
 ---
 
